@@ -1,0 +1,32 @@
+# Generated RF datasets and large artifacts
+data/
+data_all/
+data_wlan/
+data_hard/
+data_robust/
+data_domain_holdout/
+outputs/
+
+# MATLAB generated binaries
+*.mat
+*.fig
+*.asv
+
+# Model checkpoints and Python caches
+*.pt
+*.pth
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local/editor files
+.vscode/
+.agents/
+*.log
+
+# Large or copyrighted local references
+docs/*.pdf
+
+# OS files
+Thumbs.db
+.DS_Store
