@@ -1,198 +1,270 @@
-# RF Waveform Mini RF-GPT Data Factory
+# Mini RF-GPT Reproduction / Mini RF-GPT 小规模复现
 
-This MATLAB project builds a small synthetic RF spectrogram dataset aligned with the RF-GPT / WTR workflow.
+![MATLAB](https://img.shields.io/badge/MATLAB-RF%20Waveform-orange)
+![Python](https://img.shields.io/badge/Python-Training-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-CNN%20Baseline-red)
+![Dataset](https://img.shields.io/badge/Dataset-Synthetic%20RF-lightgrey)
+![Benchmark](https://img.shields.io/badge/Benchmark-Mini--WTR%20%7C%205--Task-green)
 
-## Project Layout
+## Overview / 项目概览
 
-- `generators/` - waveform generators for 5G NR, LTE, UMTS, WLAN, DVB-S2, and Bluetooth.
-- `utils/` - shared IQ augmentation and spectrogram rendering utilities.
-- `scripts/` - dataset generation, instruction JSONL construction, validation, and similarity diagnostics.
-- `data_all/` - six-technology dataset, metadata, instruction data, and WTR benchmark.
-- `data/` - legacy 5G NR-only dataset.
-- `data_wlan/` - legacy WLAN-only dataset.
-- `outputs/` - diagnostic reports, plots, and extracted paper notes.
-- `docs/` - source paper PDF.
+**EN**: This repository is a small-scale RF-GPT / Mini-WTR reproduction project. It builds a synthetic RF spectrogram data factory in MATLAB, exports instruction-style JSONL datasets, and trains lightweight PyTorch baselines for wireless technology recognition and five-task RF visual QA.
 
-## Main Pipeline
+**中文**：本项目是一个小规模 RF-GPT / Mini-WTR 复现工程。它使用 MATLAB 生成合成 RF 波形与频谱图，构建 metadata / instruction JSONL 数据，并使用 PyTorch 训练轻量 CNN baseline，用于无线技术识别与五任务 RF 视觉问答基准。
 
-From the project root, run:
+> **Important / 重要说明**  
+> This is a synthetic-data reproduction for research and demonstration. It should not be described as real over-the-air RF capture or real-world deployment validation.  
+> 本项目基于合成数据，适合复现实验、方法验证和展示，不应表述为真实空口采集数据或真实部署级泛化验证。
+
+## What This Project Provides / 项目内容
+
+| Icon | Module | English | 中文 |
+|---|---|---|---|
+| 📡 | RF Generators | 5G NR, LTE, UMTS, WLAN, DVB-S2, Bluetooth waveform generators | 六类无线信号生成器 |
+| 🌈 | Spectrograms | STFT-based grayscale RF spectrogram images | 基于 STFT 的 RF 频谱图生成 |
+| 🧾 | Metadata | JSONL metadata and instruction-style data | metadata 与 instruction JSONL 构建 |
+| 🧪 | Benchmarks | Mini-WTR and six-technology five-task benchmark | Mini-WTR 与六类五任务 benchmark |
+| 🧠 | Models | Lightweight PyTorch CNN baselines | 轻量 PyTorch CNN baseline |
+| 🧭 | Robustness | Hard-test, robust split, and domain-held-out evaluation | hard-test、robust split、domain-held-out 泛化评估 |
+| ☁️ | Kaggle | Kaggle-ready Python training workflow | 可部署到 Kaggle 的训练流程 |
+
+## Pipeline / 复现流程
+
+```mermaid
+flowchart LR
+    A[MATLAB RF Generators<br/>六类信号生成器] --> B[IQ Augmentation<br/>频偏 / AWGN / gating / shaping]
+    B --> C[Spectrogram Rendering<br/>频谱图渲染]
+    C --> D[Metadata JSONL<br/>元数据]
+    D --> E[Instruction Data<br/>指令数据]
+    D --> F[Mini-WTR Benchmark<br/>无线技术识别]
+    D --> G[Five-Task Benchmark<br/>五任务视觉问答]
+    F --> H[PyTorch CNN Training<br/>CNN 训练]
+    G --> I[Multi-Task CNN Training<br/>五任务 CNN]
+    H --> J[Robustness Evaluation<br/>泛化评估]
+    I --> J
+```
+
+## Repository Structure / 仓库结构
+
+```text
+rf-waveform-mini-rfgpt/
+├── generators/                  # MATLAB waveform generators / 六类 RF 波形生成器
+│   ├── gen_5g_nr.m
+│   ├── gen_lte.m
+│   ├── gen_umts.m
+│   ├── gen_wlan.m
+│   ├── gen_dvbs2.m
+│   └── gen_bluetooth.m
+├── utils/                       # Signal augmentation and spectrogram utilities
+│   ├── add_awgn_custom.m
+│   ├── apply_freq_offset.m
+│   ├── apply_random_time_gating.m
+│   ├── apply_random_frequency_shaping.m
+│   ├── apply_technology_visual_profile.m
+│   └── make_spectrogram_image.m
+├── scripts/                     # Dataset generation, split, audit, benchmark scripts
+│   ├── main_generate_all_tech_dataset.m
+│   ├── main_generate_hard_test_dataset.m
+│   ├── build_robust_wtr_splits.m
+│   ├── build_domain_holdout_wtr_splits.m
+│   ├── build_sixtech_fivetask_benchmark.m
+│   ├── audit_dataset_quality.m
+│   └── run_wtr_baseline.m
+├── python/                      # PyTorch training and evaluation
+│   ├── train_wtr_cnn.py
+│   ├── train_fivetask_cnn.py
+│   ├── eval_wtr_cnn.py
+│   ├── eval_fivetask_predictions.py
+│   └── rf_dataset.py
+├── docs/                        # Reproduction notes and Kaggle guide
+│   ├── REPRODUCTION_SUMMARY.md
+│   ├── SIXTECH_FIVETASK_BENCHMARK.md
+│   └── KAGGLE_TRAINING.md
+├── DATASET_CARD.md
+├── run_next_pipeline.m
+└── startup.m
+```
+
+Generated datasets and outputs are intentionally excluded from Git:
+
+```text
+data_all/
+data_hard/
+data_robust/
+data_domain_holdout/
+outputs/
+```
+
+## Supported Signal Types / 支持的无线信号类型
+
+| Technology | 中文说明 | Generator |
+|---|---|---|
+| 5G NR | 第五代移动通信新空口 | `generators/gen_5g_nr.m` |
+| LTE | 4G LTE 下行参考波形 | `generators/gen_lte.m` |
+| UMTS / WCDMA | 3G WCDMA / UMTS | `generators/gen_umts.m` |
+| WLAN | Wi-Fi / 802.11 VHT | `generators/gen_wlan.m` |
+| DVB-S2 | 卫星通信 DVB-S2 | `generators/gen_dvbs2.m` |
+| Bluetooth LE | 蓝牙低功耗信号 | `generators/gen_bluetooth.m` |
+
+## Benchmarks / 数据基准
+
+### 1. Mini-WTR: Wireless Technology Recognition
+
+**EN**: Six-class RF spectrogram classification.  
+**中文**：六类 RF 频谱图无线技术识别任务。
+
+| Item | Value |
+|---|---:|
+| Base samples / 原始样本 | 600 |
+| Technologies / 技术类别 | 6 |
+| Samples per technology / 每类样本 | 100 |
+| Robust WTR records / robust 记录 | 1140 |
+
+### 2. Six-Technology Five-Task Benchmark
+
+**EN**: A classification-style visual QA benchmark with five tasks per RF spectrogram.  
+**中文**：每张 RF 频谱图对应 5 个分类式视觉问答任务。
+
+| Task | Labels / 标签 |
+|---|---|
+| `technology_recognition` | 5G NR, LTE, UMTS, WLAN, DVB-S2, Bluetooth |
+| `snr_bucket` | low, medium, high, unknown |
+| `time_occupancy` | full, single_burst, double_burst, periodic_burst, no_gating, unknown |
+| `frequency_occupancy` | wideband, moderate_band, narrowband, low_shifted, high_shifted, two_subbands, frequency_hopping, full_spectrum, unknown |
+| `domain_condition` | in_distribution, shifted_impairment, weak_profile, no_profile, unknown |
+
+| Split | Records | Per Task |
+|---|---:|---:|
+| Train | 3990 | 798 |
+| Val | 810 | 162 |
+| Test | 900 | 180 |
+| All | 5700 | 1140 |
+
+See [docs/SIXTECH_FIVETASK_BENCHMARK.md](docs/SIXTECH_FIVETASK_BENCHMARK.md).
+
+## Results / 当前结果
+
+### Same-Distribution WTR
+
+**EN**: Same-distribution CNN training reaches near-perfect accuracy, but this is mainly a pipeline sanity check.  
+**中文**：同分布 CNN 训练可达到接近满分，但这主要说明 pipeline 可学习，不代表真实 RF 泛化。
+
+### Hard-Test With Original Checkpoint
+
+| Test Domain | Accuracy |
+|---|---:|
+| `shifted_impairment` | 73.33% |
+| `weak_profile` | 40.00% |
+| `no_profile` | 45.00% |
+
+**Conclusion / 结论**：The original model strongly depends on synthetic visual profiles.  
+原始模型明显依赖 synthetic visual profile。
+
+### Robust Mixed-Domain CNN
+
+| Metric | Accuracy |
+|---|---:|
+| Overall robust test | 96.11% |
+| `in_distribution` | 100.00% |
+| `shifted_impairment` | 100.00% |
+| `weak_profile` | 83.33% |
+| `no_profile` | 93.33% |
+
+### No-Profile Domain-Held-Out
+
+| Class | Accuracy |
+|---|---:|
+| 5G NR | 100.00% |
+| LTE | 100.00% |
+| UMTS | 96.67% |
+| WLAN | 100.00% |
+| Bluetooth | 80.00% |
+| DVB-S2 | 33.33% |
+| Overall | 85.00% |
+
+**Observation / 观察**：DVB-S2 remains the main weak class under profile-free domain shift.  
+在 no_profile 域外测试中，DVB-S2 仍是主要薄弱类别。
+
+## Quick Start / 快速开始
+
+### 1. MATLAB Dataset Generation / MATLAB 数据生成
+
+Run the full base pipeline:
 
 ```matlab
 run_next_pipeline
 ```
 
-This executes:
-
-```matlab
-main_generate_all_tech_dataset
-build_instruction_jsonl_all
-build_wtr_benchmark_jsonl
-build_dataset_splits
-export_vlm_sft_jsonl
-compare_all_tech_similarity
-audit_dataset_quality
-run_wtr_baseline
-```
-
-Expected outputs:
-
-- `data_all/metadata_index.jsonl`
-- `data_all/instruction_data.jsonl`
-- `data_all/wtr_benchmark.jsonl`
-- `data_all/splits/instruction_train.jsonl`
-- `data_all/splits/instruction_val.jsonl`
-- `data_all/splits/instruction_test.jsonl`
-- `data_all/splits/wtr_test.jsonl`
-- `data_all/vlm_sft/llava_train.jsonl`
-- `data_all/vlm_sft/llava_val.jsonl`
-- `data_all/vlm_sft/llava_test.jsonl`
-- `outputs/compare_all_tech_similarity.txt`
-- `outputs/compare_all_tech_similarity_heatmap.png`
-- `outputs/dataset_quality_audit.txt`
-- `outputs/wtr_baseline_report.txt`
-- `outputs/wtr_baseline_predictions.csv`
-- `outputs/wtr_baseline_confusion.png`
-
-The split files are created at the sample level and stratified by technology, so instructions from the same spectrogram do not leak across train, validation, and test sets.
-
-See `DATASET_CARD.md` for dataset scope, quality status, limitations, and recommended use.
-
-## Quality Gate
-
-Run:
-
-```matlab
-audit_dataset_quality
-```
-
-The audit checks JSONL integrity, file presence, image size/non-blank status, metadata ranges, split leakage, task counts, and a simple visual WTR baseline. The current dataset passes the audit with 600 valid samples, balanced 80/10/10 splits per technology, nearest-centroid WTR accuracy of 90.00%, and 1-NN cosine WTR accuracy of 88.33%.
-
-## Lightweight WTR Baseline
-
-Run:
-
-```matlab
-run_wtr_baseline
-```
-
-The baseline compares nearest-centroid, 1-NN, and 5-NN cosine classifiers over spectrogram features. The current selected baseline is `knn1`, chosen by validation accuracy with a fixed tie-break, with 91.67% test accuracy.
-
-## Generalization Stress Test
-
-The ordinary train/validation/test split is same-distribution synthetic data. To check whether a model has learned robust RF structure or mostly the synthetic visual profile, generate hard-test domains:
+Generate hard-test domains:
 
 ```matlab
 main_generate_hard_test_dataset
 ```
 
-This writes:
-
-- `data_hard/shifted_impairment/wtr_benchmark.jsonl`
-- `data_hard/weak_profile/wtr_benchmark.jsonl`
-- `data_hard/no_profile/wtr_benchmark.jsonl`
-
-Evaluate the trained CNN checkpoint without retraining:
-
-```bash
-python python/eval_wtr_cnn.py --device auto --checkpoint outputs/python_wtr_cnn/best_model.pt --output-dir outputs/hard_eval
-```
-
-Current hard-test result:
-
-- `shifted_impairment`: 73.33% accuracy
-- `weak_profile`: 40.00% accuracy
-- `no_profile`: 45.00% accuracy
-
-Interpretation: the current CNN learns the synthetic visual profile strongly. The high same-distribution accuracy is useful as a pipeline sanity check, but it should not be claimed as real RF generalization.
-
-For a stronger training protocol, build a mixed-domain robust split:
+Build robust and held-out splits:
 
 ```matlab
 build_robust_wtr_splits
-```
-
-Then train:
-
-```bash
-python python/train_wtr_cnn.py --device auto --epochs 30 --batch-size 32 --image-size 224 --train-jsonl data_robust/splits/wtr_train.jsonl --val-jsonl data_robust/splits/wtr_val.jsonl --test-jsonl data_robust/splits/wtr_test.jsonl --output-dir outputs/python_wtr_cnn_robust
-```
-
-Current robust-split CNN result:
-
-- Overall test accuracy: 96.11%
-- `in_distribution`: 100.00%
-- `shifted_impairment`: 100.00%
-- `weak_profile`: 83.33%
-- `no_profile`: 93.33%
-
-For a stricter domain-held-out protocol:
-
-```matlab
 build_domain_holdout_wtr_splits
 ```
 
-The current `no_profile` held-out experiment trains without any `no_profile` samples and tests entirely on `no_profile`, reaching 85.00% accuracy. DVB-S2 remains weak in this setting, with 33.33% class accuracy.
-
-## Six-Technology Five-Task Benchmark
-
-For a compact RF-GPT-style benchmark over all six signal types, run:
+Build the six-technology five-task benchmark:
 
 ```matlab
 build_sixtech_fivetask_benchmark
 ```
 
-This creates a classification-style visual QA benchmark with five tasks per spectrogram:
-
-- `technology_recognition`
-- `snr_bucket`
-- `time_occupancy`
-- `frequency_occupancy`
-- `domain_condition`
-
-Current output:
-
-- Samples: 1140
-- Benchmark records: 5700
-- Train/val/test records: 3990/810/900
-- Output: `data_robust/sixtech_fivetask_benchmark.jsonl`
-- Splits: `data_robust/splits/sixtech_fivetask_*.jsonl`
-
-See `docs/SIXTECH_FIVETASK_BENCHMARK.md` for task labels and limitations.
-
-Prediction files for this benchmark can be scored with:
+### 2. PyTorch WTR Training / PyTorch 无线技术识别训练
 
 ```bash
-python python/eval_fivetask_predictions.py --gold-jsonl data_robust/splits/sixtech_fivetask_test.jsonl --pred-jsonl path/to/predictions.jsonl --output-dir outputs/fivetask_eval
+python python/train_wtr_cnn.py --device auto --epochs 30 --batch-size 32 --image-size 224 --train-jsonl data_robust/splits/wtr_train.jsonl --val-jsonl data_robust/splits/wtr_val.jsonl --test-jsonl data_robust/splits/wtr_test.jsonl --output-dir outputs/python_wtr_cnn_robust
 ```
 
-Train the lightweight five-task CNN baseline with:
+### 3. Five-Task CNN Training / 五任务 CNN 训练
 
 ```bash
 python python/train_fivetask_cnn.py --device auto --epochs 20 --batch-size 64 --image-size 224
 ```
 
-For Kaggle training instructions, see `docs/KAGGLE_TRAINING.md`.
-
-## Local PyTorch Training
-
-For a laptop or desktop RTX 4090, start with the lightweight CNN WTR trainer:
+Evaluate five-task predictions:
 
 ```bash
-python python/train_wtr_cnn.py --device auto --epochs 30 --batch-size 32 --image-size 224
+python python/eval_fivetask_predictions.py --gold-jsonl data_robust/splits/sixtech_fivetask_test.jsonl --pred-jsonl outputs/python_fivetask_cnn/test_predictions.jsonl --output-dir outputs/fivetask_eval
 ```
 
-Smoke test:
+## Kaggle Training / Kaggle 训练
 
-```bash
-python python/train_wtr_cnn.py --device cpu --epochs 1 --batch-size 16 --image-size 96 --output-dir outputs/python_wtr_cnn_smoke
+**EN**: Kaggle should be used for Python training only. Generate datasets locally with MATLAB first, upload `data_robust/` and `python/` as a Kaggle Dataset, then train from a Kaggle Notebook.
+
+**中文**：Kaggle 建议只用于 Python 训练。先在本地 MATLAB 生成数据，再把 `data_robust/` 和 `python/` 上传为 Kaggle Dataset，在 Notebook 中训练。
+
+See [docs/KAGGLE_TRAINING.md](docs/KAGGLE_TRAINING.md).
+
+## Documentation / 文档
+
+- [DATASET_CARD.md](DATASET_CARD.md): Dataset scope, quality, limitations.
+- [docs/REPRODUCTION_SUMMARY.md](docs/REPRODUCTION_SUMMARY.md): Reproduction summary and result tables.
+- [docs/SIXTECH_FIVETASK_BENCHMARK.md](docs/SIXTECH_FIVETASK_BENCHMARK.md): Five-task benchmark definition.
+- [docs/KAGGLE_TRAINING.md](docs/KAGGLE_TRAINING.md): Kaggle deployment and training guide.
+- [python/README_TRAINING.md](python/README_TRAINING.md): Local PyTorch training commands.
+
+## Limitations / 局限性
+
+- Synthetic data only, not real OTA capture.
+- 部分任务依赖 metadata 控制标签，并非完全由图像人工观测得到。
+- Current scenes are mostly single-signal scenes.
+- Dense multi-signal RF scene reasoning is not covered.
+- DVB-S2 profile-free robustness still needs improvement.
+- This project is a compact reproduction and benchmark framework, not a full RF-GPT model reproduction.
+
+## Suggested Citation / 推荐描述
+
+```text
+Mini RF-GPT Reproduction: Synthetic RF Waveform Generation, RF Spectrogram Benchmarks,
+Six-Technology Wireless Technology Recognition, Five-Task Visual QA, and Robustness Evaluation.
 ```
 
-See `python/README_TRAINING.md` for details.
-
-## Path Setup
-
-`startup.m` adds `scripts/`, `generators/`, and `utils/` to the MATLAB path when MATLAB starts from this project root. It can also be run manually:
-
-```matlab
-startup
+```text
+Mini RF-GPT 小规模复现：合成 RF 波形生成、RF 频谱图基准、六类无线技术识别、
+五任务视觉问答与泛化鲁棒性评估。
 ```
